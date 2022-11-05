@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
         if traffic_light == 1:
             print('gogogo')
-            if zebra_crossing != = 1:  # 0 1 2
+            if zebra_crossing != 1:  # 0 1 2
                 print('go left / right')
 
         else:
