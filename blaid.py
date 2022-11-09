@@ -10,6 +10,7 @@ channel1 = []  # switch channel
 GPIO.setup(channel1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)  # 按一次一个向上的冲激
 
 channel2 = []  # viberation channel
+ch_left = [], ch_right = []
 GPIO.setup(channel2, GPIO.OUT)
 
 
@@ -68,9 +69,9 @@ def capture_continuous():
                 break
 
 
-def viberation_3s(t=3):
-    '''channel2 high ts default = 3'''
-    GPIO.output(channel2, GPIO.HIGH)
+def viberation_3s(t=3, channel=[channel2]):
+    '''channel high default = 3s ,channel12 '''
+    GPIO.output(channel, GPIO.HIGH)
     sleep(t)
 
 
@@ -91,7 +92,8 @@ if __name__ == '__main__':
         if traffic_light == 1:
             print('gogogo')
             if zebra_crossing != 1:  # 0 1 2
-                viberation_3s()
+                viberation_3s(t=3, channel=ch_left)
+                viberation_3s(t=3, channel=ch_right)
                 print('go left / right')
 
         else:
