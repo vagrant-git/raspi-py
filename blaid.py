@@ -12,7 +12,8 @@ GPIO.setwarnings(False)
 channel1 = []  # switch channel
 GPIO.setup(channel1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)  # 按一次一个向上的冲激
 
-channel2 = []  # viberation channel
+channel2 = []  # viberation_left channel
+channel3 = []   # viberation_right channel
 ch_left = [], ch_right = []
 GPIO.setup(channel2, GPIO.OUT)
 GPIO.setup(channel3, GPIO.OUT)
@@ -58,7 +59,7 @@ def capture_5s():
                 break
 
 
-def viberation_3s(t=3, channel=[channel2]):
+def viberation_ts(t, channel):
     '''channel high default = 3s ,channel12 '''
     GPIO.output(channel, GPIO.HIGH)
     sleep(t)
@@ -103,24 +104,13 @@ if __name__ == '__main__':
             elif traffic_light == 0:  # 没识别到
                 playsound("没识别到.mp3")
 
-        # traffic_light = deeplearning()
-        # zebra_crossing = machine_learning()
-        if detection_success == False:
-            print('detect fail, please adjust the direction')
-            viberation_3s()
-            sleep(1)
-            continue
-
-        if traffic_light == 1:
-            print('gogogo')
-            if zebra_crossing != 1:  # 0 1 2
-                viberation_3s(t=3, channel=ch_left)
-                viberation_3s(t=3, channel=ch_right)
-                print('go left / right')
-
-        else:
-            viberation_3s()
-            print('please wait')
+            # 斑马线交互
+            if zebra_crossing == 1:
+                playsound("向左.mp3")
+                viberation_ts(1, channel2)
+            elif zebra_crossing == 2:
+                playsound("向右.mp3")
+                viberation_ts(1, channel3)
 
             if cleanup() == 1:
                 GPIO.cleanup()
