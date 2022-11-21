@@ -9,14 +9,14 @@ from playsound import playsound
 ### 初始化设置 ###
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
-channel1 = []  # switch channel
+channel1 = []  # 开关 channel
 GPIO.setup(channel1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)  # 按一次一个向上的冲激
 
 ch_left = [], ch_right = []
 channel2 = [ch_left, ch_right]
-
 GPIO.setup(channel2, GPIO.OUT)
-GPIO.setup(channel3, GPIO.OUT)
+
+# GPIO.setup(channel3, GPIO.OUT)
 
 ### 按键状态检测 ###
 
@@ -25,7 +25,7 @@ def startup():
     '''wait_for_edge 60s'''
     channel1 = GPIO.wait_for_edge(
         channel1, GPIO.RISING, timeout=60000)  # timeout=5000 (ms)
-
+    playsound("welcome.wav")
     if channel1 is None:
         print('Timeout')
     else:
@@ -39,14 +39,14 @@ def cleanup():
     channel1 = GPIO.wait_for_edge(channel1, GPIO.RISING)  # timeout=5000 (ms)
 
     if channel1 is not None:
+        playsound("stop.wav")
         print('shutted down')
         shut = 1
         return shut
 
-### 拍摄5秒，每秒2张 ###
-
 
 def capture_5s():
+    '''拍摄5秒 每秒2张 '''
     with PiCamera() as camera:
         i = 1
         while True:
@@ -64,11 +64,9 @@ def viberation_ts(t=3, channel=channel2):
     GPIO.output(channel, GPIO.HIGH)
     sleep(t)
 
-### 红绿灯识别 ###
-
 
 def traffic_light():
-
+    '''红绿灯识别'''
     if green == 1:
         return 1
     elif red == 1:
@@ -76,11 +74,9 @@ def traffic_light():
     else:
         return 0
 
-### 斑马线识别 ###
-
 
 def zebra_crossing():
-
+    '''斑马线识别'''
     if left == 1:
         return 1
     elif right == 1:
@@ -96,21 +92,21 @@ if __name__ == '__main__':
             capture_5s()
             # 红绿灯交互
             if traffic_light == 1:  # 绿灯
-                playsound("green.mp3")
+                playsound("green.wav")
                 viberation_ts(t=0.5)  # TODO 绿灯提醒
             elif traffic_light == 2:  # 红灯
-                playsound("red.mp3")
+                playsound("red.wav")
                 viberation_ts()  # 两侧同时震动3s
             elif traffic_light == 0:  # 没识别到
-                playsound("nonlight.mp3")
+                playsound("nonlight.wav")
 
             # 斑马线交互
             if zebra_crossing == 1:
-                playsound("left.mp3")
-                viberation_ts(1, ch_left)
-            elif zebra_crossing == 2:
-                playsound("right.mp3")
+                playsound("left.wav")
                 viberation_ts(1, ch_right)
+            elif zebra_crossing == 2:
+                playsound("right.wav")
+                viberation_ts(1, ch_left)
 
             if cleanup() == 1:
                 GPIO.cleanup()
