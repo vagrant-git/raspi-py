@@ -3,7 +3,6 @@ import RPi.GPIO as GPIO
 from picamera import PiCamera
 from time import sleep
 import os
-
 from playsound import playsound
 
 ### 初始化设置 ###
@@ -25,7 +24,7 @@ def startup():
     '''wait_for_edge 60s'''
     channel1 = GPIO.wait_for_edge(
         channel1, GPIO.RISING, timeout=60000)  # timeout=5000 (ms)
-    playsound("welcome.wav")
+    playsound("./sounds/welcome.wav")
     if channel1 is None:
         print('Timeout')
     else:
@@ -39,7 +38,7 @@ def cleanup():
     channel1 = GPIO.wait_for_edge(channel1, GPIO.RISING)  # timeout=5000 (ms)
 
     if channel1 is not None:
-        playsound("stop.wav")
+        playsound("./sounds/stop.wav")
         print('shutted down')
         shut = 1
         return shut
@@ -89,23 +88,24 @@ if __name__ == '__main__':
     while True:
         startup()
         while True:
+            #
             capture_5s()
             # 红绿灯交互
             if traffic_light == 1:  # 绿灯
-                playsound("green.wav")
+                playsound("./sounds/green.wav")
                 viberation_ts(t=0.5)  # TODO 绿灯提醒
             elif traffic_light == 2:  # 红灯
-                playsound("red.wav")
+                playsound("./sounds/red.wav")
                 viberation_ts()  # 两侧同时震动3s
             elif traffic_light == 0:  # 没识别到
-                playsound("nonlight.wav")
+                playsound("./sounds/nonlight.wav")
 
             # 斑马线交互
             if zebra_crossing == 1:
-                playsound("left.wav")
+                playsound("./sounds/left.wav")
                 viberation_ts(1, ch_right)
             elif zebra_crossing == 2:
-                playsound("right.wav")
+                playsound("./sounds/right.wav")
                 viberation_ts(1, ch_left)
 
             if cleanup() == 1:
