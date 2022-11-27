@@ -5,6 +5,8 @@ from time import sleep
 import os
 from playsound import playsound
 
+from zebra_crossing import iscrossing
+
 ### 初始化设置 ###
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
@@ -23,11 +25,11 @@ GPIO.setup(channel2, GPIO.OUT)
 def startup():
     '''wait_for_edge 60s'''
     channel1 = GPIO.wait_for_edge(
-        channel1, GPIO.RISING, timeout=60000)  # timeout=5000 (ms)
-    playsound("./sounds/welcome.wav")
+        channel1, GPIO.RISING, timeout=60000)  # timeout=60s
     if channel1 is None:
         print('Timeout')
     else:
+        playsound("./sounds/welcome.wav")
         print('open successfully, start to recognize')
 
 
@@ -58,6 +60,16 @@ def capture_5s():
                 break
 
 
+def capture_one():
+    ''' capture one picture'''
+    camera = PiCamera()
+    # camera.resolution = (1024, 768)
+    # camera.start_preview()
+    # Camera warm-up time
+    sleep(1)
+    camera.capture('a.jpg')
+
+
 def viberation_ts(t=3, channel=channel2):
     '''channel high default = 3s ,channel2 '''
     GPIO.output(channel, GPIO.HIGH)
@@ -74,22 +86,14 @@ def traffic_light():
         return 0
 
 
-def zebra_crossing():
-    '''斑马线识别'''
-    if left == 1:
-        return 1
-    elif right == 1:
-        return 2
-    else:
-        return 0
-
-
 if __name__ == '__main__':
     while True:
         startup()
         while True:
             #
-            capture_5s()
+            # capture_5s()
+            capture_one()
+
             # 红绿灯交互
             if traffic_light == 1:  # 绿灯
                 playsound("./sounds/green.wav")
@@ -101,12 +105,29 @@ if __name__ == '__main__':
                 playsound("./sounds/nonlight.wav")
 
             # 斑马线交互
-            if zebra_crossing == 1:
-                playsound("./sounds/left.wav")
+            i = iscrossing("./a.jpg")
+            if(i == 0):
+                playsound("./sounds/nozebra.wav")
+                print('未识别到斑马线，请移动位置重新识别')
+            elif (i == 1):
+                playsound("./sounds/rightmove.wav")
                 viberation_ts(1, ch_right)
-            elif zebra_crossing == 2:
-                playsound("./sounds/right.wav")
+                print('接近斑马线左侧边缘，请靠右移动少许')
+            elif (i == 2):
+                playsound("./sounds/leftmove.wav")
                 viberation_ts(1, ch_left)
+                print('接近斑马线右侧边缘，请靠左移动少许')
+            elif (i == 3):
+                playsound("./sounds/leftrot.wav")
+                viberation_ts(1, ch_left)
+                print('斑马线在您左侧，请向左旋转少许')
+            elif (i == 4):
+                playsound("./sounds/rightrot.wav")
+                viberation_ts(1, ch_right)
+                print('斑马线在您右侧，请靠右旋转少许')
+            elif(i == 5):
+                playsound("./sounds/goodzebra.wav")
+                print('斑马线在您正前方，请放心通行')
 
             if cleanup() == 1:
                 GPIO.cleanup()
