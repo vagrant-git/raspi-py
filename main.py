@@ -3,33 +3,33 @@ import RPi.GPIO as GPIO
 from picamera import PiCamera
 from time import sleep
 import os
-from playsound import playsound
+import cv2
 
-from zebra_crossing import iscrossing
 
 ### 初始化设置 ###
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
-channel1 = []  # 开关 channel
+
+channel1 = 11  # 开关 channel
 GPIO.setup(channel1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)  # 按一次一个向上的冲激
 
-ch_left = [], ch_right = []
+ch_left = 13
+ch_right = 15
 channel2 = [ch_left, ch_right]
-GPIO.setup(channel2, GPIO.OUT)
 
-# GPIO.setup(channel3, GPIO.OUT)
+GPIO.setup(channel2, GPIO.OUT)
 
 ### 按键状态检测 ###
 
-
+soundsdir = "/home/wordpi/Desktop/raspi-py/sounds/"
 def startup():
     '''wait_for_edge 60s'''
-    channel1 = GPIO.wait_for_edge(
-        channel1, GPIO.RISING, timeout=60000)  # timeout=60s
-    if channel1 is None:
+    # start = GPIO.wait_for_edge(11, GPIO.RISING, timeout=60000)  # timeout=60s
+    start =1 
+    if start is None:
         print('Timeout')
     else:
-        playsound("./sounds/welcome.wav")
+        os.system("mplayer " + soundsdir+ "welcome.mp3")
         print('open successfully, start to recognize')
 
 
@@ -37,13 +37,14 @@ def startup():
 def cleanup():
     ''' 手动结束程序 '''
     shut = 0
-    channel1 = GPIO.wait_for_edge(channel1, GPIO.RISING)  # timeout=5000 (ms)
+    close = GPIO.wait_for_edge(channel1, GPIO.RISING)  # timeout=5000 (ms)
 
-    if channel1 is not None:
-        playsound("./sounds/stop.wav")
+    if close is not None:
+        os.system("mplayer " + soundsdir+ "stop.mp3")
+        
         print('shutted down')
         shut = 1
-        return shut
+    return shut
 
 
 def capture_5s():
@@ -63,11 +64,12 @@ def capture_5s():
 def capture_one():
     ''' capture one picture'''
     camera = PiCamera()
-    # camera.resolution = (1024, 768)
+    camera.resolution = (1024, 768)
     # camera.start_preview()
     # Camera warm-up time
     sleep(1)
     camera.capture('a.jpg')
+    camera.close()
 
 
 def viberation_ts(t=3, channel=channel2):
@@ -89,46 +91,52 @@ def traffic_light():
 if __name__ == '__main__':
     while True:
         startup()
+        from zebra_crossing import iscrossing
         while True:
             #
             # capture_5s()
             capture_one()
-
+            print("next recognition!!!")
+            '''
             # 红绿灯交互
             if traffic_light == 1:  # 绿灯
-                playsound("./sounds/green.wav")
+                os.system("mplayer " + soundsdir+ "green.mp3")
                 viberation_ts(t=0.5)  # TODO 绿灯提醒
             elif traffic_light == 2:  # 红灯
-                playsound("./sounds/red.wav")
+                os.system("mplayer " + soundsdir+ "red.mp3")
                 viberation_ts()  # 两侧同时震动3s
             elif traffic_light == 0:  # 没识别到
-                playsound("./sounds/nonlight.wav")
-
+                os.system("mplayer " + soundsdir+ "nonlight.mp3")
+            '''
             # 斑马线交互
-            i = iscrossing("./a.jpg")
+            img=cv2.imread("./a.jpg")
+            i = iscrossing(img)
+            print(i)
             if(i == 0):
-                playsound("./sounds/nozebra.wav")
+                os.system("mplayer " + soundsdir+ "nozebra.mp3")
                 print('未识别到斑马线，请移动位置重新识别')
             elif (i == 1):
-                playsound("./sounds/rightmove.wav")
+                os.system("mplayer " + soundsdir+ "rightmove.mp3")
                 viberation_ts(1, ch_right)
                 print('接近斑马线左侧边缘，请靠右移动少许')
             elif (i == 2):
-                playsound("./sounds/leftmove.wav")
+                os.system("mplayer " + soundsdir+ "leftmove.mp3")
                 viberation_ts(1, ch_left)
                 print('接近斑马线右侧边缘，请靠左移动少许')
             elif (i == 3):
-                playsound("./sounds/leftrot.wav")
+                os.system("mplayer " + soundsdir+ "leftrot.mp3")
                 viberation_ts(1, ch_left)
                 print('斑马线在您左侧，请向左旋转少许')
             elif (i == 4):
-                playsound("./sounds/rightrot.wav")
+                os.system("mplayer " + soundsdir+ "rightrot.mp3")
                 viberation_ts(1, ch_right)
                 print('斑马线在您右侧，请靠右旋转少许')
             elif(i == 5):
-                playsound("./sounds/goodzebra.wav")
+                os.system("mplayer " + soundsdir+ "goodzebra.mp3")
                 print('斑马线在您正前方，请放心通行')
-
+            
+            '''
             if cleanup() == 1:
                 GPIO.cleanup()
                 break
+            '''
