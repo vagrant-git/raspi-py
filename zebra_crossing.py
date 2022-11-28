@@ -3,16 +3,21 @@ import numpy as np
 import os
 kernel_Ero = np.ones((3,1),np.uint8)
 kernel_Dia = np.ones((5,1),np.uint8)
+'''
 file_src="../../../pythonProject/image_processing/images"
 img_name="banmaxian07.jpeg"
 img_src=os.path.join(file_src,img_name)
 img = cv2.imread(img_src)
-copy_img = img.copy()
-
+# copy_img = img.copy()
+'''
+img = cv2.imread("./a.jpg")
 def iscrossing(img):
+    
     i=0
     #图像调整分辨率
-    copy_img = cv2.resize(img,(600,800))
+    img = np.array(img)
+    copy_img = cv2.resize(img,(768,1024))
+    # gray = cv2.cvtColor(np.asarray(img), cv2.COLOR_BGR2GRAY)
     #图像灰度化
     gray=cv2.cvtColor(copy_img,cv2.COLOR_BGR2GRAY)
     #高斯滤波
@@ -74,7 +79,7 @@ def iscrossing(img):
     point_ys_copy=point_ys.copy()
     point_xs_copy=point_xs.copy()
     rects_copy=rects.copy()
-    print(rects)
+    # print(rects)
     for width in widths_copy:
         i=widths_copy.index(width)
         if abs((width-widths_avg)*(heights_copy[i]-heights_avg))>3600:
@@ -92,6 +97,7 @@ def iscrossing(img):
     angle_avg=np.average(angles)
     point_x=np.average(point_xs)
     point_y=np.average(point_ys)
+    
     for rect in rects:
         box = cv2.boxPoints(rect)
         box = np.int0(box)
@@ -99,9 +105,10 @@ def iscrossing(img):
         w,h=rect[1]
         a=rect[2] if(w>h) else 90-rect[2]
         print('x=%d y=%d width=%d height=%d angle=%0.3f'%(x,y,w,h,a))
-        out=cv2.drawContours(copy_img, [box], 0, (0, 0, 255), 2)
-    cv2.imshow('out',out)
-    cv2.waitKey(0)
+        outimg=cv2.drawContours(copy_img, [box], 0, (0, 0, 255), 2)
+   
+    # cv2.imshow('out',outimg)
+    #cv2.waitKey(0)
 
     if(i<3): return 0
     elif(point_x<100): return 1
@@ -110,6 +117,8 @@ def iscrossing(img):
     elif(width>height and angle_avg>5): return 4
     else:return 5
 
+# print(iscrossing(img))
+'''
 i=iscrossing(copy_img)
 if(i==0):
     print('这儿没有斑马线，请四周移动位置')
@@ -123,3 +132,4 @@ elif (i == 4):
     print('斑马线在您右侧，请靠右旋转少许')
 elif(i==5):
     print('这儿有斑马线，请等待通行')
+    '''
